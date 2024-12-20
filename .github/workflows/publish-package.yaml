@@ -1,0 +1,15 @@
+name: Public package on demond
+
+on:
+  workflow_dispatch:
+    inputs:
+      package_name:
+        required: true
+
+jobs:
+  github:
+    runs-on: ubuntu-latest  
+    steps:
+      - name: Placeholder
+        run: |
+          echo "place holder"
