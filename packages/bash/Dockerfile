@@ -1,18 +1,16 @@
-FROM alpine:3
+ARG NAME=bash
+ARG VERSION=5.2.37
 
-RUN wget https://ftp.gnu.org/gnu/bash/bash-5.2.37.tar.gz && \
-    tar xf bash-5.2.37.tar.gz
+RUN wget https://ftp.gnu.org/gnu/bash/bash-$VERSION.tar.gz && \
+    tar xf bash-$VERSION.tar.gz
 
-RUN apk update && \
-    apk add binutils gcc musl-dev make
-
-WORKDIR /bash-5.2.37
+WORKDIR /bash-$VERSION
 
 RUN CFLAGS="-Wno-implicit-function-declaration" ./configure --enable-static-link --with-bash-malloc=no && \
     make -j`nporc` && \
     strip -s ./bash
 
-FROM scratch
-WORKDIR /bin
-COPY --from=0 /bash-5.2.37/bash /bin/
-ENTRYPOINT ["/bin/bash"]
+WORKDIR /app
+
+RUN cp /bash-5.2.37/bash . && \
+    cp /bash-5.2.37/COPYING .

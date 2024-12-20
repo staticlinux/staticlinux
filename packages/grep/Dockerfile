@@ -1,16 +1,16 @@
-FROM alpine:3
+ARG NAME=grep
+ARG VERSION=3.11
 
-RUN apk add binutils gcc musl-dev make
+RUN wget https://ftp.gnu.org/gnu/grep/grep-$VERSION.tar.xz && \
+    tar xf grep-$VERSION.tar.xz 
 
-RUN wget https://ftp.gnu.org/gnu/grep/grep-3.11.tar.xz && \
-    tar xf grep-3.11.tar.xz 
-
-WORKDIR /grep-3.11
+WORKDIR /grep-$VERSION
 
 RUN LDFLAGS=-static ./configure && \
     make -j`nporc` && \
     strip -s ./src/grep
 
-FROM scratch
-WORKDIR /bin
-COPY --from=0 /grep-3.11/src/grep /bin/
+WORKDIR /app
+
+RUN cp /grep-$VERSION/src/grep . && \
+    cp /grep-$VERSION/COPYING .

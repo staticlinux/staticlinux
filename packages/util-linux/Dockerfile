@@ -1,7 +1,7 @@
-FROM alpine:3
+ARG NAME=util-linux
+ARG VERSION=2.40
 
-RUN apk update && \
-    apk add bash binutils gcc linux-headers musl-dev make
+RUN apk add bash linux-headers
 
 COPY <<-"EOT" /bin/gcc-wrapper
 #!/bin/bash
@@ -16,16 +16,17 @@ EOT
 
 RUN chmod +x /bin/gcc-wrapper
 
-RUN wget https://www.kernel.org/pub/linux/utils/util-linux/v2.40/util-linux-2.40.tar.gz && \
-    tar xf util-linux-2.40.tar.gz
+RUN wget https://www.kernel.org/pub/linux/utils/util-linux/v$VERSION/util-linux-$VERSION.tar.gz && \
+    tar xf util-linux-$VERSION.tar.gz
 
-WORKDIR /util-linux-2.40
+WORKDIR /util-linux-$VERSION
 
 RUN CC=/bin/gcc-wrapper LDFLAGS="-all-static" ./configure --enable-shared=no --disable-liblastlog2 --prefix=/tmp/util-linux && \
     make -j`nproc` && \
     make install && \
     strip -s /tmp/util-linux/bin/*
 
-FROM scratch
-WORKDIR /bin
-COPY --from=0 /tmp/util-linux/bin/* /bin/
+WORKDIR /app
+
+RUN cp /tmp/util-linux/bin/* . && \
+    cp /util-linux-$VERSION/COPYING .

@@ -1,6 +1,7 @@
-FROM alpine:3
-RUN apk update && \
-    apk add binutils pkgconfig gcc make musl-dev m4
+ARG NAME=wget
+ARG VERSION=1.25.0
+
+RUN apk add pkgconfig m4
 
 ## Build gmp
 RUN wget https://gmplib.org/download/gmp/gmp-6.3.0.tar.xz && \
@@ -31,16 +32,16 @@ RUN ./configure --enable-static --enable-shared=no --with-included-libtasn1 \
 
 ## Build wget
 WORKDIR /
-RUN wget https://ftp.gnu.org/gnu/wget/wget-1.25.0.tar.gz && \
-    tar xf wget-1.25.0.tar.gz
-WORKDIR /wget-1.25.0
+RUN wget https://ftp.gnu.org/gnu/wget/wget-$VERSION.tar.gz && \
+    tar xf wget-$VERSION.tar.gz
+WORKDIR /wget-$VERSION
 RUN LDFLAGS=-static LIBS="-Wl,--start-group -lnettle -lhogweed -lgmp -Wl,--end-group" \
     CFLAGS="-Wno-implicit-function-declaration -Wno-int-conversion" \
     ./configure && \
     make -j`nproc` && \
     strip -s ./src/wget
 
-FROM scratch
-WORKDIR /bin
-COPY --from=0 /wget-1.25.0/src/wget /bin/
-ENTRYPOINT ["/bin/wget"]
+WORKDIR /app
+
+RUN cp /wget-$VERSION/src/wget . && \
+    cp /wget-$VERSION/COPYING .

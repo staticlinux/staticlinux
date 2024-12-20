@@ -1,0 +1,28 @@
+
+# All outputs should be put under /app folder.
+ARG NAME
+ARG VERSION
+ARG TARGETARCH
+
+# Make sure required arguments exist
+RUN test -n "$NAME" || (echo "NAME argument is not set." && false)
+RUN test -n "$VERSION"  || (echo "VERSION argument is not set." && false)
+RUN test -n "$TARGETARCH" || (echo "TARGETARCH argument is not set." && false)
+
+# Make sure /app directory is not empty
+RUN test -n "`ls -A /app`" || (echo "/app doesn't exist or empty. Please copy all published files into /app." && false)
+
+WORKDIR /app
+
+COPY <<-EOT metadata
+name: $NAME
+version: $VERSION
+arch: $TARGETARCH
+EOT
+
+RUN echo buildtime: `date -R` >> metadata && \
+    echo files: >> metadata && \
+    find . -type f -printf "  - %M\t%s\t%P\n" | sort -k4 >> metadata
+
+FROM scratch
+COPY --from=0 /app /app
