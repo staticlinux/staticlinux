@@ -7,9 +7,16 @@ on:
         required: true
 
 jobs:
-  github:
+  build_and_publish_package:
     runs-on: ubuntu-latest  
     steps:
-      - name: Placeholder
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Build package ${{ github.event.inputs.package_name }}
         run: |
-          echo "place holder"
+          ./scripts/build_package.sh ${{ github.event.inputs.package_name }} ./app-output
+  
+      - name: Upload package ${{ github.event.inputs.package_name }}
+        run: |
+          ./scripts/upload_package.sh "${{ secrets.AZURE_STORAGE_BLOB_CONNECTION_STRING }}" ./app-output
