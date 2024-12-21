@@ -4,7 +4,7 @@ ARG VERSION=1.25.0
 RUN apk add pkgconfig m4
 
 ## Build gmp
-RUN wget https://gmplib.org/download/gmp/gmp-6.3.0.tar.xz && \
+RUN wget http://mirror.staticlinux.org/gmp/gmp-6.3.0.tar.xz && \
     tar xf gmp-6.3.0.tar.xz
 WORKDIR /gmp-6.3.0
 RUN ./configure --enable-static --enable-shared=no --prefix=/usr && \
