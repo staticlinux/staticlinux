@@ -14,6 +14,14 @@ RUN test -n "`ls -A /app`" || (echo "/app doesn't exist or empty. Please copy al
 
 WORKDIR /app
 
+# Generate file lists
+RUN find . -type f -printf "%P\n" | sort > /tmp/filelist
+
+# Comparess all files
+RUN mkdir /tmp/app-compressed && \
+    for f in `cat /tmp/filelist`; do xz -9 $f --stdout > /tmp/app-compressed/$f; done
+
+# Generate metadata
 COPY <<-EOT metadata
 name: $NAME
 version: $VERSION
@@ -22,7 +30,13 @@ EOT
 
 RUN echo buildtime: `date -R` >> metadata && \
     echo files: >> metadata && \
-    find . -type f -printf "  - %M\t%s\t%P\n" | sort -k4 >> metadata
+    find /tmp/app-compressed -type f -printf "  - %M\t%s\t%P\n" | sort -k4 >> metadata
 
+# Generate package
+RUN printf "SLP0x01%08x\n" `stat -c %s metadata` > $NAME.slp
+RUN cat metadata >> $NAME.slp
+RUN for f in `yq ".files[]" metadata | xargs -n3 | awk '{printf $3 "\n"}'`; do cat /tmp/app-compressed/$f >> $NAME.slp; done
+
+# Output
 FROM scratch
 COPY --from=0 /app /app

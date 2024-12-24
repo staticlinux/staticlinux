@@ -20,9 +20,9 @@ test -n "$ARCH" || (echo "Can't find arch in '$APPPATH/metadata'." && false)
 STORAGEPATH=$NAME/$VERSION/$ARCH
 
 # Upload
-az storage blob upload-batch \
+az storage blob upload \
     --connection-string "$BLOBCONNSTR" \
-    --destination "\$web" \
-    --destination-path $STORAGEPATH \
-    --source $APPPATH \
+    --container-name "\$web" \
+    --file $APPPATH/$NAME.slp \
+    --name $STORAGEPATH/$NAME.slp \
     --overwrite true

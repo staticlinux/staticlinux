@@ -1,6 +1,7 @@
+ARG NAME
 
 FROM alpine:3
 ARG NAME
 ARG VERSION
 
-RUN apk add binutils findutils gcc musl-dev make
+RUN apk add binutils findutils gcc musl-dev make xz yq
