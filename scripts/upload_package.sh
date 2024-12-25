@@ -24,5 +24,5 @@ az storage blob upload \
     --connection-string "$BLOBCONNSTR" \
     --container-name "\$web" \
     --file $APPPATH/$NAME.slp \
-    --name $STORAGEPATH/$NAME-$VERSION_$ARCH.slp \
+    --name $STORAGEPATH/$NAME-$VERSION-$ARCH.slp \
     --overwrite true
