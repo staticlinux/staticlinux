@@ -29,8 +29,10 @@ RUN echo buildtime: `date -R` >> metadata && \
     for f in `cat /tmp/filelist`; do find . -maxdepth 1 -name $f -printf "  - `md5sum $f | awk '{print $1}'` %M\t%s\t%P\n" >> metadata; done
 
 # Generate package
-RUN printf "SLP0x01%08x\n" `stat -c %s metadata` > $NAME.slp && \
-    cat metadata >> $NAME.slp && \
+RUN printf "\x19\x82SLP" > $NAME.slp && \
+    xz -9 metadata --stdout > /tmp/metadata.xz && \
+    SIZE=`stat -c %s /tmp/metadata.xz` && printf $(echo \\x$(printf %x $(echo $(($SIZE&0xff))))\\x$(printf %x $(echo $(($SIZE>>8&0xff))))\\x$(printf %x $(echo $(($SIZE>>16&0xff))))) >> $NAME.slp && \
+    cat /tmp/metadata.xz >> $NAME.slp && \
     for f in `cat /tmp/filelist`; do xz -9 $f --stdout >> $NAME.slp; done
 
 # Output
