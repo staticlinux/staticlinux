@@ -17,6 +17,9 @@ WORKDIR /app
 # Generate file lists
 RUN find . -type f -printf "%P\n" | sort > /tmp/filelist
 
+# Compress all files
+RUN for f in `cat /tmp/filelist`; do mkdir -p `dirname /tmp/$f` && xz -9 $f --stdout > /tmp/$f.xz; done
+
 # Generate metadata
 COPY <<-EOT metadata
 name: $NAME
@@ -26,14 +29,14 @@ EOT
 
 RUN echo buildtime: `date -R` >> metadata && \
     echo files: >> metadata && \
-    for f in `cat /tmp/filelist`; do find . -maxdepth 1 -name $f -printf "  - `md5sum $f | awk '{print $1}'` %M\t%s\t%P\n" >> metadata; done
+    for f in `cat /tmp/filelist`; do find . -maxdepth 1 -name $f -printf "  - `md5sum $f | awk '{print $1}'` %M\t`stat -c %s /tmp/$f.xz`\t%P\n" >> metadata; done
 
 # Generate package
 RUN printf "\x19\x82SLP" > $NAME.slp && \
     xz -9 metadata --stdout > /tmp/metadata.xz && \
     SIZE=`stat -c %s /tmp/metadata.xz` && printf $(echo \\x$(printf %x $(echo $(($SIZE&0xff))))\\x$(printf %x $(echo $(($SIZE>>8&0xff))))\\x$(printf %x $(echo $(($SIZE>>16&0xff))))) >> $NAME.slp && \
     cat /tmp/metadata.xz >> $NAME.slp && \
-    for f in `cat /tmp/filelist`; do xz -9 $f --stdout >> $NAME.slp; done
+    for f in `cat /tmp/filelist`; do cat /tmp/$f.xz >> $NAME.slp; done
 
 # Output
 FROM scratch
