@@ -13,10 +13,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Build package ${{ github.event.inputs.package_name }}
+      - name: Build and upload package ${{ github.event.inputs.package_name }}
         run: |
-          ./scripts/build_package.sh ${{ github.event.inputs.package_name }} ./app-output
-  
-      - name: Upload package ${{ github.event.inputs.package_name }}
-        run: |
-          ./scripts/upload_package.sh "${{ secrets.AZURE_STORAGE_BLOB_CONNECTION_STRING }}" ./app-output
+          PACKAGES="${{ github.event.inputs.package_name }}"
+          if [ "$PACKAGES" = "*" ]; then PACKAGES=`ls packages/`; fi
+          for f in $PACKAGES; do
+              echo build package: $f
+              ./scripts/build_package.sh $f ./app-output
+
+              echo upload package: $f
+              ./scripts/upload_package.sh "${{ secrets.AZURE_STORAGE_BLOB_CONNECTION_STRING }}" ./app-output
+              rm -rf ./app-output
+          done
