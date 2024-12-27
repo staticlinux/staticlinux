@@ -2,12 +2,13 @@
 set -e
 
 print_help() {
-    echo "upload_to_azure.sh <blob-connection-string> <app-folder>"
+    echo "upload_to_azure.sh <storage-account-name> <blob-sas-token> <app-folder>"
 }
 
 ROOTPATH=`realpath $(dirname $0)/..`
-BLOBCONNSTR=$1
-APPPATH=$2
+STORAGEACCOUNT=$1
+SASTOKEN=$2
+APPPATH=$3
 test -n "$APPPATH" || (print_help && false)
 
 # Get path in azure storage
@@ -21,7 +22,8 @@ STORAGEPATH=$NAME/$VERSION/$ARCH
 
 # Upload
 az storage blob upload \
-    --connection-string "$BLOBCONNSTR" \
+    --sas-token "$SASTOKEN" \
+    --account-name "$STORAGEACCOUNT" \
     --container-name "\$web" \
     --file $APPPATH/$NAME.slp \
     --name $STORAGEPATH/$NAME-$VERSION-$ARCH.slp \
