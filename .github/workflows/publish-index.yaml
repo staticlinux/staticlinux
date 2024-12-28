@@ -1,0 +1,11 @@
+name: Build and publish index
+
+on:
+  workflow_dispatch
+
+jobs:
+  build_and_publish_index:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo TODO
